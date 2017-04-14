@@ -25,6 +25,6 @@ public interface Journalable {
 	Taskable getTaskAtList(int index);
 	
 	// возвращаем список задач
-	List<Taskable> getTasks();	
+	List<Taskable> getTasks();
 
 }

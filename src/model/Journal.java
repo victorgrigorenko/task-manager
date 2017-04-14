@@ -11,16 +11,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.bind.annotation.XmlType;
 
+import model.storage.StorageListTaskable;
 
-@XmlRootElement
+
+
 //возможно стоило использовать PROPERTY, и объявить геттер/сеттер пары для корректной
+@XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE) // записи чтения  
 @XmlType(name = "journalOfTask")
 //@XmlSeeAlso({ Taskable.class })
-public class Journal implements Journalable{
+public class Journal implements Journalable, StorageListTaskable<Taskable>{
 
 	// ставим required, теперь если не найдет List в xml, то будет ругаться
-//	@XmlElement(required = true, type =Taskable.class) //! Taskable - интерфейс поэтому НЕ ОК 
+//!	@XmlElement(required = true, type =Taskable.class) //! Taskable - интерфейс поэтому НЕ ОК !!!!!
 	@XmlElement(required = true, name = "task", type =Task.class) //ОК, JAXB хочет класс, поэтому пока оставим так, но ЭТО НЕ КРУТО! 
 	@XmlElementWrapper(name = "tasks") // для группировки коллекции в подтег
 	private List<Taskable> taskList = new ArrayList<>();
@@ -52,6 +55,12 @@ public class Journal implements Journalable{
 	@Override
 	public List<Taskable> getTasks() {
 		return taskList;
+	}
+	
+	// не здорово
+	public boolean recordAllDatal(String fileName){
+		StorageListTaskable.super.recordAllData(taskList,fileName);//(List<?>)
+		return false;
 	}
 
 }
