@@ -12,7 +12,8 @@ public class ObjectFactory {
 	private final static QName Q_NAME = new QName(XMLConstants.NULL_NS_URI, "data");
 	
 	// Должен быть указан рутовский элемент (у нас это Journal)
-    @XmlElementDecl(name = "jrnl")
+    @SuppressWarnings("rawtypes")
+	@XmlElementDecl(name = "jrnl")
 	public JAXBElement<Journal> createJournal(Journal value){
 		
 		return new JAXBElement<Journal>(Q_NAME, Journal.class, null, value);

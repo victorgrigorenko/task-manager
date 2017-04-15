@@ -8,23 +8,29 @@ import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "journalable")
-public interface Journalable {
+public interface Journalable<T extends Taskable> {
 	//List<Task> taskList;
 	
-	// если все ок отработало, то возвращаем true ы	
-	// добавление задач будет происходить последовательно поэтом индекс нам не нужен
-	void addTaskToList(Taskable task); //, int index);
-	
-	// при удалении же нужно знать id(индекс) удаляемого элемента 
-	void deleteTaskAtList(int index); 
-	
-	// замена задачи из списка, на указанную в аргументе
-	void replaceTaskAtList(int index, Taskable task);
-	
-	// возвращаем одну задачу
-	Taskable getTaskAtList(int index);
-	
-	// возвращаем список задач
-	List<Taskable> getTasks();
+	// добавление задач будет происходить в конец списка, поэтом индекс не нужен
+	// добавить задачу
+	void addTask(T task); 
+	// добавить список задач
+	void addTasks(List<? extends T> list);
+//	void addTasks(Collection<? extends T> list); 
 
+	// замена задачи из списка, на указанную в аргументе
+	void replaceTask(int index, T task);
+	// замена всего списка задач
+	void replaseTasks(List<? extends T> list);
+
+	// возвращаем одну задачу
+	T getTask(int index);
+	// возвращаем список задач
+	List<? extends T> getTasks();
+
+	// при удалении же нужно знать id(индекс) удаляемого элемента 
+	// удалить одну, определенную задачу
+	void deleteTask(int index); 
+	// удалить все задачи
+	void deleteTasks(int index);
 }

@@ -92,4 +92,10 @@ public class Task implements Taskable{
 			this.date = date;
 		
 	}
+	
+	//@Override
+	public String toString(){
+
+		return title;
+	}
 }
