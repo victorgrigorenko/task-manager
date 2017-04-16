@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -28,47 +30,78 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE) // записи чтения  
 @XmlType(name = "journalOfTask")
-public class Journal<T extends Taskable> implements Journalable<T>{
+public class Journal<T extends Taskable> extends Observable implements Journalable<T>{
 
-	//private StorageListTask storageList;
-
+	 
 	// ставим required, теперь если не найдет List в xml, то будет ругаться
 //!	@XmlElement(required = true, type =Taskable.class) //! Taskable - интерфейс поэтому НЕ ОК !!!!!
 	@XmlElement(required = true, name = "task", type =Task.class) //ОК, JAXB хочет класс, поэтому пока оставим так, но ЭТО НЕ КРУТО! 
 	@XmlElementWrapper(name = "tasks") // для группировки коллекции в подтег
 	private List<T> taskList = new ArrayList<>();
+
+	// Список наблюдателей(подписчиков)
+	private List<Observer> observers;
+
+	public Journal(){
+		observers = new ArrayList<>();
+	}
+
+	@Override
+	public void addObserver(Observer o) {
+		if(o != null)
+			observers.add(o);
+	}
+
+	@Override
+	public void deleteObserver(Observer o) {
+		if(o != null)
+			observers.remove(o);
+	}
 	
+	@Override
+	public void notifyObservers() {
+		for (Observer observer : observers) 
+			observer.update(this,null); // второй аргумент нам не нужен
+	}
 	
 	@Override
 	public void addTask(T task){
-		if(task!=null)			
+		if(task!=null){			
 			taskList.add(task);
+			notifyObservers();
+		}
 	}
 
 	@Override
 	public void addTasks(List<? extends T> list) {
-
+		if (list !=null && !list.isEmpty()){
 			taskList.addAll(list);
+			notifyObservers();
+		}
 	}
 
 
-	@Override
+	@Override // возможно стоит добавить проверку индекса
 	public void deleteTask(int index){
-			taskList.remove(index);
+		taskList.remove(index);
+		notifyObservers();
 	}
 
 	@Override
-	public void deleteTasks(int index){
-			taskList.removeAll(taskList);
+	public void deleteTasks(){
+		taskList.clear();
+		notifyObservers();
 	}
 
 	@Override
 	public void replaceTask(int index, T task) {
-		if (task != null)
-			taskList.set(index, task);		
+		if (task != null){
+			taskList.set(index, task);
+			notifyObservers();
+		}
 	}
 	
-	@Override
+	@Override // возможно стоит исправить, не здорово, что происходит 2 оповещения
 	public void replaseTasks(List<? extends T> list) {
 		taskList.removeAll(taskList);
 		taskList.addAll(list);
@@ -94,15 +127,25 @@ public class Journal<T extends Taskable> implements Journalable<T>{
 		return StorageListTask.recordAllData(this, fileName);
 	}
 	
+	// запись в дефолтный xml
+	public boolean recordJournal() {		
+		return StorageListTask.recordAllData(this, null);
+	}
+
 	/** считывани с диска
 	 * @param fileName - имя считываемого файла: *.xml, 
 	 * для использования имени по умолчанию передавайте null
 	 * @return в случае успеха вернет журнал, иначе null
 	 */
-// считать из xml файла
+	// считать из xml файла
 	public Journal<?> readJournal(String fileName){
 		
 		return StorageListTask.readAllData(this, fileName);
+	}
+	
+	// считать из дефолтного xml файла
+	public Journal<?> readJournal(){
+		return StorageListTask.readAllData(this, null);
 	}
 	
 	

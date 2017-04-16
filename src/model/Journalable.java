@@ -32,5 +32,5 @@ public interface Journalable<T extends Taskable> {
 	// удалить одну, определенную задачу
 	void deleteTask(int index); 
 	// удалить все задачи
-	void deleteTasks(int index);
+	void deleteTasks();
 }
