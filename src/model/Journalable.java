@@ -33,4 +33,17 @@ public interface Journalable<T extends Taskable> {
 	void deleteTask(int index); 
 	// удалить все задачи
 	void deleteTasks();
+	
+	// в идеале вынести в отдельный интерфейс, но начинаются проблемы
+	// запись в дефолтный xml
+	boolean recordJournal();
+	// запись в xml файл, с указанием имени
+	boolean recordJournal(String fileName);
+	
+	// считать из дефолтного xml файла
+	Journalable<?> readJournal();
+	// считать из xml файла с указанным именем
+	Journalable<?> readJournal(String fileName);
+	
+	
 }

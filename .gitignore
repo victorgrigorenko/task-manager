@@ -3,4 +3,5 @@
 .settings/
 # исключаем так же текущий файл
 .gitignore
-
+storage/
+/bin/

@@ -9,8 +9,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "taskable")
 public interface Taskable {
-	
-//	 id
+//	id
 //	int getId();
 //	void setId(int id);
 	
@@ -25,7 +24,7 @@ public interface Taskable {
 	// dateTime
 	Date getDate();
 	void setDate(Date date);
-	
+		
 	// contacts .. 
 	// что такое контакты?? для чего нужны?
 }
