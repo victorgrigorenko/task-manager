@@ -1,6 +1,6 @@
 package model;
 
-import static model.storage.Constants.*;
+import static constants.Constants.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -66,45 +66,81 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	
 	@Override
 	public void addTask(T task){
-		if(task!=null){			
-			taskList.add(task);
-			notifyObservers();
-		}
+		taskList.add(task);
+		notifyObservers();
 	}
 
 	@Override
 	public void addTasks(List<? extends T> list) {
-		if (list !=null && !list.isEmpty()){
+		if (list !=null && !list.isEmpty()){ // нужна ли здесь проверка, ведь в контроллер не выносим данный метод
 			taskList.addAll(list);
 			notifyObservers();
 		}
 	}
 
-
-	@Override // возможно стоит добавить проверку индекса
-	public void deleteTask(int index){
+	@Override // удаление по id/index
+	@Deprecated //! применимость метода под вопросом
+	public void deleteTask(int index){ 
 		taskList.remove(index);
 		notifyObservers();
 	}
 
 	@Override
-	public void deleteTasks(){
+	public boolean deleteTask(String title){
+		T task = returnReferenceOnTask(title);
+		if (task != null){
+			taskList.remove(task); // удаляем найденную задачу
+			return true; 
+		}
+		return false;			
+	}
+	
+	@Override
+	public void clearTasks(){
 		taskList.clear();
 		notifyObservers();
 	}
-
-	@Override
-	public void replaceTask(int index, T task) {
-		if (task != null){
-			taskList.set(index, task);
-			notifyObservers();
+	
+	@Override // безопасный поиск, вернет копию задачи с указанным именем
+	public T searchTask(String title){
+		for (T task : taskList) { //если хеш-коды разные, то и объекты гарантированно разные
+			if (task.getTitle().hashCode() != title.hashCode()) 
+				continue; 	// переходим к след итерации
+			// если хеши совпадают, то объекты могут быть равны, проверяем
+			if (task.getTitle().equals(title))
+				return task;
 		}
+		return null; // если ничего не нашли вернем null
 	}
 	
-	@Override // возможно стоит исправить, не здорово, что происходит 2 оповещения
-	public void replaseTasks(List<? extends T> list) {
-		taskList.removeAll(taskList);
+	// вернуть ссылку, на задачу с указанным именем
+	private T returnReferenceOnTask(String title){
+		for(int i = 0; i < taskList.size(); i++){
+			if (taskList.get(i).getTitle().hashCode() != title.hashCode()) 
+				continue; 	
+			if (taskList.get(i).getTitle().equals(title)){
+				return taskList.get(i);
+			}
+		}
+		return null;			
+	}
+
+	@Override // замена текущей, на указанную
+	public boolean replaceTask(String title, T task) {
+		int index = taskList.indexOf(returnReferenceOnTask(title));
+		if (index != -1){
+			taskList.set(index, task);
+			notifyObservers();
+			return true;
+		}
+		return false;
+	}
+	
+	@Override // 
+	public void replaceTasks(List<? extends T> list) {
+		taskList.clear();
 		taskList.addAll(list);
+		notifyObservers();
 	}
 
 	@Override

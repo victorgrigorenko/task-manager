@@ -24,7 +24,7 @@ public class Task implements Taskable{
 	
 	// еще одно поле контакты..
 	
-	
+
 	public Task(){
 		title = "No Name";
 		description = "...";
@@ -43,19 +43,46 @@ public class Task implements Taskable{
 		date = new Date(); 
 	}
 
+	public Task(String title, Date date){
+		setTitle(title);
+		description = "...";
+		setDate(date); 
+	}
+
 	public Task(String title, String desc, Date date){
 		setTitle(title);
 		setDescription(desc);
 		setDate(date);
 	}
 
-//	public int getId() {
-//		return id;
-//	}
-//
-//	public void setId(int id) {
-//		this.id = id;
-//	}
+	@Override
+	public Taskable createTask() {
+		return new Task();
+	}
+
+	public static Taskable create(String title) {
+		return new Task(title);
+	}
+
+	@Override
+	public Taskable createTask(String title) {
+		return new Task(title);
+	}
+
+	@Override
+	public Taskable createTask(String title, String desc) {
+		return new Task(title,desc);
+	}
+
+	@Override
+	public Taskable createTask(String title, Date date) {
+		return new Task(title,date);
+	}
+
+	@Override
+	public Taskable createTask(String title, String desc, Date date) {
+		return new Task(title,desc,date);
+	}
 
 	@Override
 	public String getTitle() {
@@ -64,9 +91,7 @@ public class Task implements Taskable{
 
 	@Override
 	public void setTitle(String title) {
-		if(title!=null && !title.trim().isEmpty())
-			this.title = title;
-		
+		this.title = title;
 	}
 
 	@Override
@@ -76,9 +101,7 @@ public class Task implements Taskable{
 
 	@Override
 	public void setDescription(String desc) {
-		if(desc!=null && !desc.trim().isEmpty())
-			this.description = desc;
-		
+		this.description = desc;
 	}
 
 	@Override
@@ -87,9 +110,8 @@ public class Task implements Taskable{
 	}
 
 	@Override
-	public void setDate(Date date) { // возможно стоит как то получше организовать проверку даты/времени
-		if(date!=null)
-			this.date = date;
+	public void setDate(Date date) { 
+		this.date = date;
 		
 	}
 	

@@ -1,7 +1,8 @@
 # исключаем имя и настройки проекта
-.project
-.settings/
-# исключаем так же текущий файл
-.gitignore
+/.project
+/.classpath
+/.settings/
 storage/
 /bin/
+/src/controller/TaskableController.java
+/src/controller/TaskController.java

@@ -9,20 +9,31 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "taskable")
 public interface Taskable {
-//	id
-//	int getId();
-//	void setId(int id);
+	
+	// будем создавать задачи, на все случаи жизни
+	Taskable createTask();
+
+	Taskable createTask(String title);
+	
+	Taskable createTask(String title, String desc);
+	
+	Taskable createTask(String title, Date date);
+
+	Taskable createTask(String title, String desc, Date date);
 	
 	// title
 	String getTitle();
+	
 	void setTitle(String title);
 	
 	// description
 	String getDecsription();
+	
 	void setDescription(String desc);
 	
 	// dateTime
 	Date getDate();
+	
 	void setDate(Date date);
 		
 	// contacts .. 

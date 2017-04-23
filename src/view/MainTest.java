@@ -1,6 +1,6 @@
 package view;
 
-import static model.storage.Constants.*;
+import static constants.Constants.*;
 
 import java.io.Console;
 import java.io.File;
@@ -37,11 +37,12 @@ public class MainTest{
         // некий код...
         
         // пока просто добавляем данные руками
-        controller.addTask(new Task("Задание номер ноль=Р"));
-        controller.addTask(new Task("Покупки","Купить картоху и лук"));
-        controller.addTask(new Task("Учеба","Попробовать поучиться =D"));
-        controller.addTask(new Task("Режим","Восстановить его"));
-        controller.addTask(new Task("Контроллер","Написать контроллер",new Date(new Date().getTime()+600_000))); // +10 мин
+        controller.addTask();
+        controller.addTask("Задание номер ноль=Р");
+        controller.addTask("Покупки","Купить картоху и лук");
+        controller.addTask("Учеба","Попробовать поучиться =D");
+        controller.addTask("Режим","Восстановить его");
+        controller.addTask("Контроллер","Написать контроллер",new Date(new Date().getTime()+600_000)); // +10 мин
         
         // Пробуем записать на диск
         System.out.println("\nСохранение данных: "+controller.recordJournal());

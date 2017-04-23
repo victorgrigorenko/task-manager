@@ -21,7 +21,8 @@ public class TaskController {
 	}
 	
 	public void setTitle(String title){
-		task.setTitle(title);
+		if(title!=null && !title.trim().isEmpty())
+			task.setTitle(title);
 	}
 	
 	// description
@@ -30,7 +31,8 @@ public class TaskController {
 	}
 	
 	public void setDescription(String description){
-		task.setDescription(description);
+		if(description!=null && !description.isEmpty()) // описание может состоять из пробелов, это же описание
+			task.setDescription(description);
 	}
 	
 	// dateTime
@@ -39,6 +41,7 @@ public class TaskController {
 	}
 	
 	public void setDate(Date date){
-		task.setDate(date);
+		if(date!=null)
+			task.setDate(date);
 	}
 }

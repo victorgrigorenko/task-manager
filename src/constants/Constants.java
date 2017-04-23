@@ -1,4 +1,4 @@
-package model.storage;
+package constants;
 
 // Класс, хранящий константы, изначально для использования их в интерфейсах при работе с JAXB
 import model.Journal;

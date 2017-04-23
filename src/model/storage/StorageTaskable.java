@@ -1,7 +1,6 @@
 package model.storage;
 
-// Обход анти-паттерна: Интерфейс для констант
-import static model.storage.Constants.*;
+import static constants.Constants.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

@@ -18,21 +18,27 @@ public interface Journalable<T extends Taskable> {
 	void addTasks(List<? extends T> list);
 //	void addTasks(Collection<? extends T> list); 
 
-	// замена задачи из списка, на указанную в аргументе
-	void replaceTask(int index, T task);
+	// поиск задачи с указанным именем и ее замена на указанную в аргументе
+	boolean replaceTask(String title, T task);
 	// замена всего списка задач
-	void replaseTasks(List<? extends T> list);
+	void replaceTasks(List<? extends T> list);
 
 	// возвращаем одну задачу
 	T getTask(int index);
 	// возвращаем список задач
 	List<? extends T> getTasks();
 
-	// при удалении же нужно знать id(индекс) удаляемого элемента 
-	// удалить одну, определенную задачу
-	void deleteTask(int index); 
+	@Deprecated //! применимость метода под вопросом
+	void deleteTask(int index); // удаление по id/index
+	
+	// удаление по имени
+	boolean deleteTask(String title); // может и не удалить задачу, если не найдет
+	
 	// удалить все задачи
-	void deleteTasks();
+	void clearTasks(); // просто все почистит, влюбом случае
+	
+	// поиск задачи по имени
+	T searchTask(String title);
 	
 	// в идеале вынести в отдельный интерфейс, но начинаются проблемы
 	// запись в дефолтный xml
