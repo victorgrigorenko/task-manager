@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
@@ -42,8 +44,9 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	// Список наблюдателей(подписчиков)
 	private List<Observer> observers;
 
-	public Journal(){
+	public Journal(){//Observer o){
 		observers = new ArrayList<>();
+		//this.addObserver(o);
 	}
 
 	@Override
@@ -63,6 +66,46 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 		for (Observer observer : observers) 
 			observer.update(this,null); // второй аргумент нам не нужен
 	}
+	
+	
+
+	@Override
+	public T createTask() {
+		return (T) new Task();
+	}
+
+	@Override
+	public T createTask(String title) {
+		if(title!=null && !title.isEmpty()){ 
+			return (T) new Task(title);
+		}
+		return null;
+	}
+
+	@Override
+	public T createTask(String title, String desc) {
+		if(title!=null && !title.isEmpty() && desc!=null){
+			return (T) new Task(title, desc);
+		}
+		return null;
+	}
+
+	@Override
+	public T createTask(String title, Date date) {
+		if(title!=null && !title.isEmpty() && date!=null){
+			return (T) new Task(title, date);
+		}
+		return null;
+	}
+
+	@Override
+	public T createTask(String title, String desc, Date date) {
+		if(title!=null && !title.isEmpty() && desc!=null && date!=null){
+			return (T) new Task(title, desc, date);
+		}
+		return null;
+	}
+
 	
 	@Override
 	public void addTask(T task){
@@ -87,11 +130,13 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 
 	@Override
 	public boolean deleteTask(String title){
-		T task = returnReferenceOnTask(title);
+		T task = (title != null && !title.isEmpty())? returnReferenceOnTask(title): null;
 		if (task != null){
 			taskList.remove(task); // удаляем найденную задачу
+			notifyObservers();
 			return true; 
 		}
+
 		return false;			
 	}
 	
@@ -103,9 +148,12 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	
 	@Override // безопасный поиск, вернет копию задачи с указанным именем
 	public T searchTask(String title){
+		if (title == null || title.isEmpty()) 
+			return null; // если входные данные не верны вернем null
+
 		for (T task : taskList) { //если хеш-коды разные, то и объекты гарантированно разные
-			if (task.getTitle().hashCode() != title.hashCode()) 
-				continue; 	// переходим к след итерации
+//			if (task.getTitle().hashCode() != title.hashCode()) 
+//				continue; 	// переходим к след итерации
 			// если хеши совпадают, то объекты могут быть равны, проверяем
 			if (task.getTitle().equals(title))
 				return task;
@@ -114,24 +162,30 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	}
 	
 	// вернуть ссылку, на задачу с указанным именем
-	private T returnReferenceOnTask(String title){
-		for(int i = 0; i < taskList.size(); i++){
-			if (taskList.get(i).getTitle().hashCode() != title.hashCode()) 
-				continue; 	
-			if (taskList.get(i).getTitle().equals(title)){
-				return taskList.get(i);
-			}
+	private T returnReferenceOnTask(String title){ // переписать, используя итератор
+		if (title == null || title.isEmpty()) 
+			return null; 
+
+		Iterator<T> iterator = taskList.iterator();
+		T currentTask;
+		while(iterator.hasNext()){
+			currentTask = iterator.next();
+			if(currentTask.getTitle().equals(title))
+				return currentTask;
 		}
 		return null;			
 	}
 
+	//! Подумать! менять не объект, а модифицировать поля
 	@Override // замена текущей, на указанную
 	public boolean replaceTask(String title, T task) {
-		int index = taskList.indexOf(returnReferenceOnTask(title));
-		if (index != -1){
-			taskList.set(index, task);
-			notifyObservers();
-			return true;
+		if(title != null && !title.isEmpty() && task != null){
+			int index = taskList.indexOf(returnReferenceOnTask(title));
+			if (index != -1){
+				taskList.set(index, task);
+				notifyObservers();
+				return true;
+			}
 		}
 		return false;
 	}
@@ -157,14 +211,14 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	/** запись на диск
 	 * @param fileName - имя считываемого файла: *.xml, 
 	 * @return в случае успеха вернет true, иначе false
+	 * @throws JAXBException 
 	 */
-	public boolean recordJournal(String fileName) {		
-		// указывает на класс
-		return StorageListTask.recordAllData(this, fileName);
+	public boolean recordJournal(String fileName) throws JAXBException {		
+		return StorageListTask.recordAllData(this, fileName); // указывает на класс
 	}
 	
 	// запись в дефолтный xml
-	public boolean recordJournal() {		
+	public boolean recordJournal() throws JAXBException {		
 		return StorageListTask.recordAllData(this, null);
 	}
 
@@ -174,13 +228,13 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	 * @return в случае успеха вернет журнал, иначе null
 	 */
 	// считать из xml файла
-	public Journal<?> readJournal(String fileName){
-		
+	public Journal<?> readJournal(String fileName) throws JAXBException{
+		// если все ок вернет лист задач, иначе вернет null
 		return StorageListTask.readAllData(this, fileName);
 	}
 	
 	// считать из дефолтного xml файла
-	public Journal<?> readJournal(){
+	public Journal<?> readJournal() throws JAXBException{
 		return StorageListTask.readAllData(this, null);
 	}
 	
@@ -188,14 +242,17 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	private static class StorageListTask<T extends Taskable>{ //implements Storage....
 		private static File fileDefault;
 		
-		public static boolean recordAllData(Journal<?> jrnl,String fileName){
+		public static boolean recordAllData(Journal<?> jrnl,String fileName) throws JAXBException{
 	        try(
-	        		FileOutputStream file = (fileName != null && !fileName.trim().isEmpty())?
+	        		FileOutputStream file = (fileName != null && !fileName.isEmpty())?
 					new FileOutputStream(PATH+"//"+fileName+".xml"): // пользовательский
 	        		new FileOutputStream(PATH+"//"+NAME);
 				){	        
-	        	
-	        	fileDefault = (fileName != null && !fileName.trim().isEmpty())? 
+
+	        	/* по умолчанию дефолтный файл, это указан с именем в константе NAME, но если мы
+	        	 * задаем имя файлу при записи, то fileDefault будет содержать указанное нами имя.  
+	        	 */
+	        	fileDefault = (fileName != null && !fileName.isEmpty())? 
 	        			new File(PATH+"//"+fileName+".xml"):
         				new File(PATH+"//"+NAME);
 	        	
@@ -216,16 +273,17 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 				return false;
 				
 			} catch (JAXBException e) { // ставим в конец, т.к JAXB юзаем в конце
-				e.printStackTrace();
-				return false;
+//				e.printStackTrace();
+				throw new JAXBException(e);
+				//return false;
 			}
 	        return true;
 		}
 
-		public static Journal<?> readAllData(Journal<?> jrnl,String fileName){
+		public static Journal<?> readAllData(Journal<?> jrnl,String fileName) throws JAXBException{
 	        try{
         		//еще проверку на предмет существования данного файла в директории
-        		File file = (fileName != null && !fileName.trim().isEmpty())?
+        		File file = (fileName != null && !fileName.isEmpty())?
         				new File(PATH+"//"+fileName+".xml"): // пользовательский
     					new File(PATH+"//"+fileDefault.getName());				
 	        
@@ -235,8 +293,9 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	            return  (Journal<?>) um.unmarshal(file);	            
 	    		
 			} catch (JAXBException e) { // ставим в конец, т.к JAXB юзаем в конце
-				e.printStackTrace();
-				return null;
+//				e.printStackTrace();
+				throw new JAXBException(e);
+				//return null;
 			}
 		}
 

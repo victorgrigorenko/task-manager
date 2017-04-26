@@ -1,7 +1,9 @@
 package model;
 
+import java.util.Date;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
@@ -11,6 +13,17 @@ import javax.xml.bind.annotation.XmlType;
 public interface Journalable<T extends Taskable> {
 	//List<Task> taskList;
 	
+	// будем создавать задачи, на все случаи жизни
+	T createTask();
+
+	T createTask(String title);
+	
+	T createTask(String title, String desc);
+	
+	T createTask(String title, Date date);
+
+	T createTask(String title, String desc, Date date);
+
 	// добавление задач будет происходить в конец списка, поэтом индекс не нужен
 	// добавить задачу
 	void addTask(T task); 
@@ -42,14 +55,14 @@ public interface Journalable<T extends Taskable> {
 	
 	// в идеале вынести в отдельный интерфейс, но начинаются проблемы
 	// запись в дефолтный xml
-	boolean recordJournal();
+	boolean recordJournal() throws JAXBException;
 	// запись в xml файл, с указанием имени
-	boolean recordJournal(String fileName);
+	boolean recordJournal(String fileName) throws JAXBException;
 	
 	// считать из дефолтного xml файла
-	Journalable<?> readJournal();
+	Journalable<?> readJournal() throws JAXBException;
 	// считать из xml файла с указанным именем
-	Journalable<?> readJournal(String fileName);
+	Journalable<?> readJournal(String fileName) throws JAXBException;
 	
 	
 }

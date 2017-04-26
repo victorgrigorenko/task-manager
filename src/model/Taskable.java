@@ -35,6 +35,8 @@ public interface Taskable {
 	Date getDate();
 	
 	void setDate(Date date);
+	
+	String show();
 		
 	// contacts .. 
 	// что такое контакты?? для чего нужны?

@@ -60,10 +60,6 @@ public class Task implements Taskable{
 		return new Task();
 	}
 
-	public static Taskable create(String title) {
-		return new Task(title);
-	}
-
 	@Override
 	public Taskable createTask(String title) {
 		return new Task(title);
@@ -115,9 +111,17 @@ public class Task implements Taskable{
 		
 	}
 	
-	//@Override
+	@Override
 	public String toString(){
 
 		return title;
+	}
+
+	@Override
+	public String show(){
+		
+		return "название: " + this.getTitle()
+		+"\nописание: "+ this.getDecsription()
+		+"\nдата: "+ this.getDate();
 	}
 }

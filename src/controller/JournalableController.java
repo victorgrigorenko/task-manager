@@ -4,6 +4,8 @@ import java.lang.annotation.Inherited;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
 import model.Journal;
 import model.Taskable;
 
@@ -42,13 +44,13 @@ public interface JournalableController<T extends Taskable> {
 	void clearTasks();
 	
 	// сохранение
-	boolean recordJournal();
+	boolean recordJournal() throws JAXBException;
 
-	boolean recordJournal(String fileName);
+	boolean recordJournal(String fileName) throws JAXBException;
 	
 	// чтение
-	Journal<?> readJournal();
+	Journal<?> readJournal() throws JAXBException;
 	
-	Journal<?> readJournal(String fileName);
+	Journal<?> readJournal(String fileName) throws JAXBException;
 
 }
