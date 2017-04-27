@@ -162,7 +162,7 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 	}
 	
 	// вернуть ссылку, на задачу с указанным именем
-	private T returnReferenceOnTask(String title){ // переписать, используя итератор
+	private T returnReferenceOnTask(String title){ 
 		if (title == null || title.isEmpty()) 
 			return null; 
 
@@ -197,6 +197,25 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 		notifyObservers();
 	}
 
+	@Override // редактирование полей найденной задачи, можно еще добавить проверку на equals, но не уверен что стоит
+	public boolean editTask(String title, String editTitle, String editDescription, Date editDate) {
+		T task = returnReferenceOnTask(title); // получили ссыль на нужную таску
+		if (task==null)
+			return false;
+		
+		if(editTitle != null && !editTitle.isEmpty()) 
+			task.setTitle(editTitle);
+
+		if(editDescription != null && !editDescription.isEmpty()) 
+			task.setDescription(editDescription);
+
+		if(editDate != null) 
+			task.setDate(editDate);
+		
+		return true;
+	}
+
+	
 	@Override
 	public T getTask(int index) {
 		return taskList.get(index);
@@ -298,7 +317,5 @@ public class Journal<T extends Taskable> extends Observable implements Journalab
 				//return null;
 			}
 		}
-
 	}
-
 }

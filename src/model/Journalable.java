@@ -35,6 +35,9 @@ public interface Journalable<T extends Taskable> {
 	boolean replaceTask(String title, T task);
 	// замена всего списка задач
 	void replaceTasks(List<? extends T> list);
+	// попытка заменить replaseTask на более адекватную штуку
+	// title - имя для поиска, edit - редактируемые поля задачи
+	boolean editTask(String title, String editTitle, String editDescription, Date editDate); // т.е. находим задачу по названию и редактируем ее поля
 
 	// возвращаем одну задачу
 	T getTask(int index);

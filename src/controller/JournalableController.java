@@ -24,7 +24,9 @@ public interface JournalableController<T extends Taskable> {
 	
 	// замена задачи из списка, на указанную в аргументе
 	boolean replaceTask(String title, T task); // ищем по имени и заменяем
-
+	
+	// попытка заменить replaseTask на более адекватную штуку
+	boolean editTask(String title, String editTitle, String editDescription, Date editDate);
 	// поиск задачи по имени, нашли и вернули
 	T searchTask(String title); 
 	
