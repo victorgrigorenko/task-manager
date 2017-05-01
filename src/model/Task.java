@@ -1,6 +1,8 @@
 package model;
 
-import java.util.Date;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -20,7 +22,9 @@ public class Task implements Taskable{
 	private String description;
 	
 	@XmlElement
-	private Date date;
+	private Calendar date;
+	private SimpleDateFormat formatDate = new SimpleDateFormat("d MMMM yyyyг, в hh:mm");
+
 	
 	// еще одно поле контакты..
 	
@@ -28,28 +32,28 @@ public class Task implements Taskable{
 	public Task(){
 		title = "No Name";
 		description = "...";
-		date = new Date(); // устанавливаем текущую дату/время
+		date = new GregorianCalendar(); // устанавливаем текущую дату/время
 	}
 	
 	public Task(String title){
 		setTitle(title);
 		description = "...";
-		date = new Date(); 
+		date = new GregorianCalendar();
 	}
 
 	public Task(String title, String desc){
 		setTitle(title);
 		setDescription(desc);
-		date = new Date(); 
+		date = new GregorianCalendar();
 	}
 
-	public Task(String title, Date date){
+	public Task(String title, Calendar date){
 		setTitle(title);
 		description = "...";
 		setDate(date); 
 	}
 
-	public Task(String title, String desc, Date date){
+	public Task(String title, String desc, Calendar date){
 		setTitle(title);
 		setDescription(desc);
 		setDate(date);
@@ -61,22 +65,7 @@ public class Task implements Taskable{
 	}
 
 	@Override
-	public Taskable createTask(String title) {
-		return new Task(title);
-	}
-
-	@Override
-	public Taskable createTask(String title, String desc) {
-		return new Task(title,desc);
-	}
-
-	@Override
-	public Taskable createTask(String title, Date date) {
-		return new Task(title,date);
-	}
-
-	@Override
-	public Taskable createTask(String title, String desc, Date date) {
+	public Taskable createTask(String title, String desc, Calendar date) {
 		return new Task(title,desc,date);
 	}
 
@@ -101,12 +90,12 @@ public class Task implements Taskable{
 	}
 
 	@Override
-	public Date getDate() {
+	public Calendar getDate() {
 		return date;
 	}
 
 	@Override
-	public void setDate(Date date) { 
+	public void setDate(Calendar date) { 
 		this.date = date;
 		
 	}
@@ -122,6 +111,6 @@ public class Task implements Taskable{
 		
 		return "название: " + this.getTitle()
 		+"\nописание: "+ this.getDecsription()
-		+"\nдата: "+ this.getDate();
+		+"\nдата: "+ formatDate.format(getDate().getTime());
 	}
 }

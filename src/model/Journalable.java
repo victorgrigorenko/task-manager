@@ -1,6 +1,6 @@
 package model;
 
-import java.util.Date;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
@@ -16,17 +16,11 @@ public interface Journalable<T extends Taskable> {
 	// будем создавать задачи, на все случаи жизни
 	T createTask();
 
-	T createTask(String title);
-	
-	T createTask(String title, String desc);
-	
-	T createTask(String title, Date date);
-
-	T createTask(String title, String desc, Date date);
+	T createTask(String title, String desc, Calendar date);
 
 	// добавление задач будет происходить в конец списка, поэтом индекс не нужен
 	// добавить задачу
-	void addTask(T task); 
+	boolean addTask(T task); 
 	// добавить список задач
 	void addTasks(List<? extends T> list);
 //	void addTasks(Collection<? extends T> list); 
@@ -37,15 +31,12 @@ public interface Journalable<T extends Taskable> {
 	void replaceTasks(List<? extends T> list);
 	// попытка заменить replaseTask на более адекватную штуку
 	// title - имя для поиска, edit - редактируемые поля задачи
-	boolean editTask(String title, String editTitle, String editDescription, Date editDate); // т.е. находим задачу по названию и редактируем ее поля
+	boolean editTask(String title, String editTitle, String editDescription, Calendar editDate); // т.е. находим задачу по названию и редактируем ее поля
 
 	// возвращаем одну задачу
 	T getTask(int index);
 	// возвращаем список задач
 	List<? extends T> getTasks();
-
-	@Deprecated //! применимость метода под вопросом
-	void deleteTask(int index); // удаление по id/index
 	
 	// удаление по имени
 	boolean deleteTask(String title); // может и не удалить задачу, если не найдет

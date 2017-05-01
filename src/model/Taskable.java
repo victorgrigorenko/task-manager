@@ -1,6 +1,6 @@
 package model;
 
-import java.util.Date;
+import java.util.Calendar;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -13,13 +13,7 @@ public interface Taskable {
 	// будем создавать задачи, на все случаи жизни
 	Taskable createTask();
 
-	Taskable createTask(String title);
-	
-	Taskable createTask(String title, String desc);
-	
-	Taskable createTask(String title, Date date);
-
-	Taskable createTask(String title, String desc, Date date);
+	Taskable createTask(String title, String desc, Calendar date);
 	
 	// title
 	String getTitle();
@@ -32,9 +26,9 @@ public interface Taskable {
 	void setDescription(String desc);
 	
 	// dateTime
-	Date getDate();
+	Calendar getDate();
 	
-	void setDate(Date date);
+	void setDate(Calendar calendar);
 	
 	String show();
 		
