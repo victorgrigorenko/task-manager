@@ -21,13 +21,9 @@ import model.Task;
 import model.Taskable;
 
 public class View {
-//	Journal model;
 	JournalController controller;
 
 	public View(JournalController controller) {
-//		this.model = model;
-//		controller = (JournalController) JournalController.newInstance(model);
-//		this.model.addObserver(new JournalObserver());
 		this.controller = controller;
 	}
 

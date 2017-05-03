@@ -2,7 +2,8 @@
 /.project
 /.classpath
 /.settings/
-storage/
+/storage/*
+!/storage/help.txt
 /bin/
 /src/controller/TaskableController.java
 /src/controller/TaskController.java

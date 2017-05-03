@@ -36,7 +36,7 @@ import controller.JournalController;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.NONE) // записи чтения  
 @XmlType(name = "journalOfTask")
-public class Journal extends Observable implements Journalable<Task>, Observer{ //
+public class Journal extends Observable implements Journalable<Task>{ //
 	Integer i;
 	
 	// ставим required, теперь если не найдет List в xml, то будет ругаться
@@ -65,30 +65,29 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 	}
 	
 	@Override
-	public void notifyObservers() {
+	public void notifyObservers(Object arg) {
 		for (Observer observer : observers) 
-			observer.update(this,null); // второй аргумент нам не нужен
+			observer.update(this,((boolean)arg)); // второй аргумент в true, только если хотим вывести список задач 
 	}
 	
-	@Override
-	public Task createTask() {
-		return new Task();
-	}
 
 	@Override
 	public Task createTask(String title, String desc, Calendar date) {
 		if(title!=null && !title.isEmpty() && desc!=null && date!=null){
 			return new Task(title, desc, date);
 		}
-		return null;
+		//.... ну или если ввели дату без описалова, добавляем дефолт, но стекущей датой
+		return new Task(); // быстрое добавление задачи, если поля пустые
 	}
 
 	
 	@Override
 	public boolean addTask(Task task){
 		boolean result;
+		Task t = returnReferenceOnTask(task.getTitle());
+		if (t != null) taskList.remove(t); // на случай если нашли задачу с таким же именем, удаляем старую..
 		result = (taskList.add(task))? true: false;
-		notifyObservers();
+		notifyObservers(false);
 		return result;
 	}
 
@@ -96,7 +95,7 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 	public void addTasks(List<? extends Task> list) {
 		if (list !=null && !list.isEmpty()){ // нужна ли здесь проверка, ведь в контроллер не выносим данный метод
 			taskList.addAll(list);
-			notifyObservers();
+			notifyObservers(false);
 		}
 	}
 
@@ -106,7 +105,7 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 		Task task = (title != null && !title.isEmpty())? returnReferenceOnTask(title): null;
 		if (task != null){
 			taskList.remove(task); // удаляем найденную задачу
-			notifyObservers();
+			notifyObservers(false);
 			return true; 
 		}
 
@@ -118,7 +117,7 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 		if (taskList != null && !taskList.isEmpty())
 			taskList.clear();
 		
-		notifyObservers();
+		notifyObservers(false);
 	}
 	
 	@Override // безопасный поиск, вернет копию задачи с указанным именем
@@ -126,14 +125,11 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 		if (title == null || title.isEmpty()) 
 			return null; // если входные данные не верны вернем null
 
-		for (Task task : taskList) { //если хеш-коды разные, то и объекты гарантированно разные
-//			if (task.getTitle().hashCode() != title.hashCode()) 
-//				continue; 	// переходим к след итерации
-			// если хеши совпадают, то объекты могут быть равны, проверяем
+		for (Task task : taskList) { 
 			if (task.getTitle().equals(title))
 				return task;
 		}
-		return null; // если ничего не нашли вернем null
+		return null; // если ничего не нашли вернем null и как то обрабатывать, а то NPE
 	}
 	
 	// вернуть ссылку, на задачу с указанным именем
@@ -151,14 +147,13 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 		return null;			
 	}
 
-	//! Подумать! менять не объект, а модифицировать поля
 	@Override // замена текущей, на указанную
 	public boolean replaceTask(String title, Task task) {
 		if(title != null && !title.isEmpty() && task != null){
 			int index = taskList.indexOf(returnReferenceOnTask(title));
 			if (index != -1){
 				taskList.set(index, task);
-				notifyObservers();
+				notifyObservers(false);
 				return true;
 			}
 		}
@@ -169,33 +164,36 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 	public void replaceTasks(List<? extends Task> list) {
 		taskList.clear();
 		taskList.addAll(list);
-		notifyObservers();
+		notifyObservers(false);
 	}
 
 	@Override // редактирование полей найденной задачи, можно еще добавить проверку на equals, но не уверен что стоит
 	public boolean editTask(String title, String editTitle, String editDescription, Calendar editDate) {
+		Boolean edited = false; // редактировали задачу или нет
 		Task task = returnReferenceOnTask(title); // получили ссыль на нужную таску
 		if (task==null)
 			return false;
 		
-		if(editTitle != null && !editTitle.isEmpty()) 
+		if(editTitle != null && !editTitle.isEmpty()){ 
 			task.setTitle(editTitle);
+			edited = true;
+		}
 
-		if(editDescription != null && !editDescription.isEmpty()) 
+		if(editDescription != null && !editDescription.isEmpty()){ 
 			task.setDescription(editDescription);
+			edited = true;
+		}
 
-		if(editDate != null) 
+		if(editDate != null){ 
 			task.setDate(editDate);
+			edited = true;
+		}
 		
-		return true;
+		notifyObservers(false);
+		return edited;
 	}
 
 	
-	@Override
-	public Task getTask(int index) {
-		return taskList.get(index);
-	}
-
 	@Override
 	public List<? extends Task> getTasks() {
 		return taskList;
@@ -236,8 +234,9 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 	private static class StorageListTask<T extends Taskable>{ //implements Storage....
 		private static File fileDefault;
 		
-		public static boolean recordAllData(Journal jrnl,String fileName) throws JAXBException{
-	        try(
+		public static boolean recordAllData(Journal journal,String fileName) throws JAXBException{
+	        boolean result = false;
+			try(
 	        		FileOutputStream file = (fileName != null && !fileName.isEmpty())?
 					new FileOutputStream(PATH+"//"+fileName+".xml"): // пользовательский
 	        		new FileOutputStream(PATH+"//"+NAME);
@@ -255,72 +254,56 @@ public class Journal extends Observable implements Journalable<Task>, Observer{ 
 	    		Marshaller m = jaxbContext.createMarshaller();
 	    		
 	    		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true); // эта строка добавляет форматирование в xml файл
-	    		m.marshal(jrnl, file);
+	    		m.marshal(journal, file);
 		        System.out.println(fileDefault.getName());
-	    		
+		        result = true;
 			} catch(FileNotFoundException e){
-				e.printStackTrace();
-				return false;
+//				e.printStackTrace();
+				result = false;
+
 				
 			} catch (IOException e) {
-				e.printStackTrace();
-				return false;
+//				e.printStackTrace();
+//				return false;
+				result = false;
 				
 			} catch (JAXBException e) { // ставим в конец, т.к JAXB юзаем в конце
 //				e.printStackTrace();
+				result = false;
 				throw new JAXBException(e);
-				//return false;
 			}
-	        return true;
+	        return result;
 		}
 
-		public static Journal readAllData(Journal jrnl,String fileName) throws JAXBException{
+		// После того как добавили календарь, xml выглядит ужасающе
+		// Т.е. нужна выжимка, а не весь объект календаря писать 
+		public static Journal readAllData(Journal journal,String fileName) throws JAXBException{
 	        try{
         		//еще проверку на предмет существования данного файла в директории
         		File file = (fileName != null && !fileName.isEmpty())?
         				new File(PATH+"//"+fileName+".xml"): // пользовательский
-    					new File(PATH+"//"+fileDefault.getName());				
+    					new File(PATH+"//"+fileDefault.getName()); // если нет дефолтного файла возникает NPE				
 	        
 	    		JAXBContext jaxbContext = JAXBContext.newInstance(PACKAGE);
 	            Unmarshaller um = jaxbContext.createUnmarshaller();
 	    		
-	            return  (Journal) um.unmarshal(file);	            
+	            journal =  (Journal) um.unmarshal(file); //! Сохраняем в наш журнал и возвращаем его
+	            journal.notifyObservers(false); // апдейтим
+	            return  journal;	            
 	    		
 			} catch (JAXBException e) { // ставим в конец, т.к JAXB юзаем в конце
-//				e.printStackTrace();
+
 				throw new JAXBException(e);
 				//return null;
 			}
 		}
 	}
-	
-	// Эта штука будет принимать последнюю команду, которую получит от контроллера 
-	// и выводить соответствующее сообщение, вторым аргументом так же может принимать
-	// статус: успешно(true)/неуспешно(выполнено), пока пробуем без статуса
-//	public String display(String command, String message){
-//		String msg;
-//		switch (Command.valueOf(command)) {
-//			case ADD:  
-//			case DEL: 
-//			case SEARCH: 
-//			case SHOW_ALL:
-//			case CLEAR_ALL: 
-//			case HELP: 
-//			case STOP: msg = message;
-//				break;
-//			default:
-//				msg = "Вы ввели неверную команду. Попробуйте заново или воспользуйтесь справкой 'help'";
-//		}
-//		//notifyObservers();
-//		return msg;
-//
-//	}
 
-//	@Override
-	public void update(Observable o, Object arg) {
-		//this.display(command, message)
-//		message = arg.toString();
-		notifyObservers(arg); // Доходим сюда, а делее не ок
+
+	@Override
+	public void showAll() {
+		notifyObservers(true); // здесь просто просим вывести текущее состояние журнала
 	}
+	
 
 }

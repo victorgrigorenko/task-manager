@@ -1,5 +1,6 @@
 package model;
 
+import java.beans.Transient;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -10,7 +11,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "task")
 public class Task implements Taskable{
 //	private int id; // id соответствует значению в списке
@@ -23,7 +24,8 @@ public class Task implements Taskable{
 	
 	@XmlElement
 	private Calendar date;
-	private SimpleDateFormat formatDate = new SimpleDateFormat("d MMMM yyyyг, в hh:mm");
+	
+	private SimpleDateFormat formatDate = new SimpleDateFormat("d MMMM YYYYг, в hh:mm");
 
 	
 	// еще одно поле контакты..

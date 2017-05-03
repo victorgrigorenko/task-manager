@@ -1,10 +1,8 @@
 package controller;
 
-import static constants.Exception.FILE_NOT_FOUND;
-import static constants.Exception.ILLEGAL_ARGUMENT;
-import static constants.Exception.IO;
-import static constants.Exception.JAXB_READ;
-import static constants.Exception.JAXB_RECORD;
+import static constants.Exception.*;
+import static constants.Command.*;
+import constants.Command;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -21,8 +19,6 @@ import java.util.Observer;
 
 import javax.xml.bind.JAXBException;
 
-import constants.Command;
-
 import model.Journal;
 import model.Journalable;
 import model.Task;
@@ -32,15 +28,12 @@ import model.Task;
 public class JournalController extends Observable implements JournalableController<Task> {
 	private Journalable<Task> journal;
 
-	private String message; // сообщение, которое мы будем передавать на дисплей
-	
 	// Список наблюдателей(подписчиков)
 	private List<Observer> observers;
 
 	private JournalController(Journalable<Task> journal) {
 		observers = new ArrayList<>();
 		this.journal = journal;
-		this.addObserver((Observer) journal); // добавляем наблюдателя (это наша модель)
 	}
 
 	public static JournalController newInstance(Journalable<Task> journal) {
@@ -68,93 +61,13 @@ public class JournalController extends Observable implements JournalableControll
 		}
 	}
 	
-	//****		
-	
-	// Создаем таски здесь и проверки везде добавляем, что б в аргументах не
-	// было бяки
-	@Override // задача будет добавляться всегда успешно, т.к. нет входных данных,
-	public boolean addTask() { // в которых можно ошибиться, однако для удобства
-								// работы оставляем boolean
-		Task task = journal.createTask();
-		journal.addTask(task);
-		return (task != null) ? true : false;
-	}
 
-	@Override
-	public boolean addTask(String title, String description, Calendar date) {
-		Task task = journal.createTask(title, description, date);
-		journal.addTask(task);
-		return (task != null) ? true : false;
-	}
-
-	// ! Придумать возможно не полностью замену задачи, а редактирование полей
-	// задачи
-	@Override // замена задачи из списка, на указанную в аргументе
-	public boolean replaceTask(String title, Task task) {
-		return journal.replaceTask(title, task);
-	}
-
-	@Override
-	public Task searchTask(String title) {
-		return journal.searchTask(title);
-	}
-
-	@Override // возвращаем список задач
-	public List<? extends Task> getTasks() {
-		return journal.getTasks();
-	}
-
-	// удаление задачи по имени
-	public boolean deleteTask(String title) {
-		return journal.deleteTask(title);
-	}
-
-	@Override // очистить журнал
-	public void clearTasks() {
-		journal.clearTasks();
-	}
-
-	@Override // сохранение
-	public boolean recordJournal() throws JAXBException {
-		return journal.recordJournal();
-	}
-
-	@Override
-	public boolean recordJournal(String fileName) throws JAXBException {
-		return journal.recordJournal(fileName);
-	}
-
-	@Override // чтение
-	public Journal readJournal() throws JAXBException {
-		return (Journal) journal.readJournal();
-	}
-
-	@Override
-	public Journal readJournal(String fileName) throws JAXBException {
-		return (Journal) journal.readJournal(fileName);
-	}
-
-	@Override
-	public boolean editTask(String title, String editTitle, String editDescription, Calendar editDate) {
-		return journal.editTask(title, editTitle, editDescription, editDate);
-	}
-
-	/// Весь код, что ниже забран из вьюхи,
-	public void commandRead() throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-		String command;
-
-		do { // передаем разные функции
-			command = reader.readLine();
-
-		} while (!commandParse(command).equals("stop"));
-
-	}
-
-	private Command commandReturn(String command){
+	// выплевывает енам на основании того, что мы ввели
+	// т.к. неудобно вводить имя константы в точности каждый раз
+	private Command returnCommandOfEnum(String command){
 		Command cmd;
 		String tmp = "";
-		char[] chArr = command.toCharArray();
+		char[] chArr = command.trim().toCharArray();
 		for(int i = 0; i<chArr.length; i++){
 			if (chArr[i] == ' ') chArr[i] = '_';
 			tmp += chArr[i];
@@ -168,31 +81,43 @@ public class JournalController extends Observable implements JournalableControll
 		return cmd;
 	}
 	
+	/// Весь код, что ниже забран из вьюхи,
+	public void commandRead() throws IOException {
+		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+		String command;
+		Command commanOfEnum;
+		do { // передаем разные функции
+			command = reader.readLine();
+			commanOfEnum = returnCommandOfEnum(command);
+			commandParse(commanOfEnum);
+		} while (commanOfEnum != STOP);
+
+	}
+
 	// подумать, возможно оставить возвращение сообщения только в конкретных методах
-	public String commandParse(String command) throws IOException {
+	public String commandParse(Command command) throws IOException {
 		String message = ""; 
 
-//		switch (command) {
-		switch (commandReturn(command)) {
-			case ADD: message = add(); // добавление задачи
+		switch (command) {
+			case ADD: message = addTask(); // добавление задачи
 				break;
-			case DEL: message = del(); // удаление задачи commandShowTasks
+			case DEL: message = deleteTask(); // удаление задачи commandShowTasks
 				break;
-			case SEARCH: message = search(); // поиск задачи
+			case SEARCH: message = searchTask(); // поиск задачи
 				break;
-			case EDIT: message = edit(); // редактирование задачи
+			case EDIT: message = editTask(); // редактирование задачи
 				break;
-			case SHOW_ALL: message = showAll(); // вывод всех задач
+			case SHOW_ALL: showAll(); // вывод всех задач
 				break;
 			case CLEAR_ALL: message = clearAll(); // удалить все задачи
 				break;
-			case RECORD: message = record(); // запись журнала задач в файл
+			case RECORD: message = recordJournal(); // запись журнала задач в файл
 				break;
-			case READ: message = read(); // чтение журнала задач из файла
+			case READ: message = readJournal(); // чтение журнала задач из файла
 				break;
 			case HELP: message = help(); // справка
 				break;
-			case STOP: message = "stop";
+			case STOP: message = "Работа планировщика остановлена"; // "stop"
 				break;
 			case OTHER:
 			default:
@@ -219,14 +144,6 @@ public class JournalController extends Observable implements JournalableControll
 			command = reader.readLine();
 			listOfDate.add(command);
 	
-			notifyObservers("Вы можете прекратить ввод, набрав 'OK': ");
-			command = reader.readLine();
-			if (command.toUpperCase().equals("OK")) 
-				return listOfDate;
-			else {
-				notifyObservers("Продолжим ввод..\n");
-			}
-	
 			// если мы хотим задать еще и время
 			notifyObservers("Часы: ");
 			command = reader.readLine();
@@ -247,60 +164,80 @@ public class JournalController extends Observable implements JournalableControll
 			return null;
 		}
 	}
+	
 	// преобразование входных данных в дату/время
-	private Calendar setupDate(List<String> list){
+	private Calendar setupDate(List<String> list, Calendar date){
 		Calendar calendar = new GregorianCalendar();
 		int year, month, day, hourOfDay, minute;
 
-		if (list == null || list.isEmpty() || list.size()<3){
-			notifyObservers("При заполнении даты/времени указаны не все поля");
-			return calendar;
-		}
+		if (list == null || list.isEmpty() || list.size()<5)
+			notifyObservers("При заполнении даты/времени частично или полностью указаныне все поля");
 		
 		try{
-			if (list.size()>2 && list.size()<5){ // только дата, без времени
-				year 	= (list.get(0) != null)? Integer.valueOf(list.get(0)): Calendar.YEAR; 	// NumberFormatException
-				month 	= (list.get(1) != null)? Integer.valueOf(list.get(1))-1: Calendar.MONTH; // т.к. дата с 0, а не с 1
-				day 	= (list.get(2) != null)? Integer.valueOf(list.get(2)): Calendar.DATE; 	// NumberFormatException
-				calendar.set(year, month, day);
-			}
-			
-			if (list.size()>4){ // только дата, без времени
-				year 	= (list.get(0) != null)? Integer.valueOf(list.get(0)): Calendar.YEAR; 	// NumberFormatException
-				month 	= (list.get(1) != null)? Integer.valueOf(list.get(1))-1: Calendar.MONTH; 	// NumberFormatException
-				day 	= (list.get(2) != null)? Integer.valueOf(list.get(2)): Calendar.DATE; 	// NumberFormatException
-				hourOfDay = (list.get(3) != null)? Integer.valueOf(list.get(3)): Calendar.HOUR;	// NumberFormatException
-				minute 	= (list.get(4) != null)? Integer.valueOf(list.get(4)): Calendar.MINUTE;	// NumberFormatException
+			if (list.size()>4){ // если передали пустое значение, то устанавливаем текущий год/месяц/... 
+				year 	= (list.get(0) != null && !list.get(0).isEmpty())? Integer.valueOf(list.get(0)): date.get(Calendar.YEAR); 	// NumberFormatException
+				month 	= (list.get(1) != null && !list.get(1).isEmpty())? Integer.valueOf(list.get(1))-1: date.get(Calendar.MONTH); 	// т.к. дата с 0, а не с 1
+				day 	= (list.get(2) != null && !list.get(2).isEmpty())? Integer.valueOf(list.get(2)): date.get(Calendar.DATE); 	// NumberFormatException
+				hourOfDay = (list.get(3) != null && !list.get(3).isEmpty())? Integer.valueOf(list.get(3)): date.get(Calendar.HOUR);	// NumberFormatException
+				minute 	= (list.get(4) != null && !list.get(4).isEmpty())? Integer.valueOf(list.get(4)): date.get(Calendar.MINUTE);	// NumberFormatException
 				calendar.set(year, month, day, hourOfDay, minute);
 			}
 		} catch (NumberFormatException e) {
-			notifyObservers("Неверный формат даты/времени");
-		}
-		
+			notifyObservers("Неверный формат даты/времени\n");
+		}		
 		return calendar;
 	}
+	
 
-	//Display()
-	private String add() {
+	// вызов нужного метода add в зависимости от кол-ва входных параметров
+	private boolean add(List<String> commandArgs) {
+		// будем возвращать boolean, в зависимости от того успешно прошло добавление или нет
+		Task task = null;
+		if (commandArgs != null) {
+			Calendar calendar;
+			List<String> listOfDate = new ArrayList<>();
+			if (commandArgs.size() == 7) { 
+				// Дата с указанием времени
+				for(int i=2; i<commandArgs.size();i++){
+					listOfDate.add(commandArgs.get(i));
+				}
+				calendar = setupDate(listOfDate,new GregorianCalendar());
+				task = journal.createTask(commandArgs.get(0), commandArgs.get(1), calendar);
+			}	
+			else 
+				return false;
+		}		
+		return journal.addTask(task); 
+	}
+
+	@Override
+	public String addTask() {
 		String msg = "";
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 			String command;
-			List<String> commandArgs = new ArrayList<>();// сюда складываем
-															// аргументы
+			List<String> commandArgs = new ArrayList<>();// сюда складываем аргументы
 			notifyObservers("Для добавления задачи построчно вводите поля (название/описание/дата)\n");
 			
 			notifyObservers("Название: ");
-			command = reader.readLine();			
-			commandArgs.add(command);
-			
+			command = reader.readLine();
+			if(journal.searchTask(command) == null){
+				commandArgs.add(command);
+			}
+			else{ // задача почему то не перезаписывается.. календарь создавать здесь, в зависимости, от того перезаписываем задачу или просто добавляем
+				notifyObservers("Задача с указанным именем существует, хотите ее перетереть текущей ('y'/'n')? ");
+				char ch = (char)reader.read();
+				if(ch == 'n' || ch == 'N')
+					return null;
+				commandArgs.add(command);
+				reader.readLine();
+			}				
 			notifyObservers("Описание: ");
 			command = reader.readLine();
 			commandArgs.add(command);
 
-			// здесь заполняется дата
-			commandArgs.addAll(fillDateField());
-			msg = (addTask(commandArgs))? "Задача успешно добалена \n": "Задача не была добавлена\n";
+			commandArgs.addAll(fillDateField()); // здесь заполняется дата 
+			msg = (add(commandArgs))? "Задача успешно добалена \n": "Задача не была добавлена\n";
 
 			return msg;
 
@@ -313,41 +250,8 @@ public class JournalController extends Observable implements JournalableControll
 	}
 	
 	
-	// вызов нужного метода add в зависимости от кол-ва входных параметров
-	private boolean addTask(List<String> commandArgs) {
-		// будем возвращать boolean, в зависимости от того успешно прошло добавление или нет
-		// или же можно возвращать сообщение
-		Task task = null;
-		if (commandArgs != null) {
-			Calendar calendar;
-			List<String> listOfDate = new ArrayList<>();
-			switch (commandArgs.size()) { // это временно, потом сделаю по-человечьи
-				case 5: // Если задаем только дату, без указания времени
-					listOfDate.add(commandArgs.get(2)); // не каеф так, но пока так
-					listOfDate.add(commandArgs.get(3));
-					listOfDate.add(commandArgs.get(4));
-					calendar = setupDate(listOfDate);
-					task = journal.createTask(commandArgs.get(0), commandArgs.get(1), calendar);
-					break;
-				case 7: // Дата с указанием времени
-					listOfDate.add(commandArgs.get(2));
-					listOfDate.add(commandArgs.get(3));
-					listOfDate.add(commandArgs.get(4));
-					listOfDate.add(commandArgs.get(5));
-					listOfDate.add(commandArgs.get(6));
-					calendar = setupDate(listOfDate);
-					task = journal.createTask(commandArgs.get(0), commandArgs.get(1), calendar);
-					break;
-	
-				default:
-					return false;
-			}
-		}		
-		return journal.addTask(task);
-	}
-
-	
-	private String del() { // так же возвращаем успех или нет, если не нашли нужную задачу
+	@Override
+	public String deleteTask() { // так же возвращаем успех или нет, если не нашли нужную задачу
 		String msg;
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -368,8 +272,8 @@ public class JournalController extends Observable implements JournalableControll
 		return msg;
 	}
 
-	//Display()
-	private String search() { // здесь выводим текстовое предсавление задачи
+	@Override
+	public String searchTask() { // здесь выводим текстовое предсавление задачи
 		String msg;
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -389,8 +293,9 @@ public class JournalController extends Observable implements JournalableControll
 		return msg;
 	}
 	
-	//!
-	private String edit(){ // так же возвращаем либо message or boolean
+	
+	@Override // Редактирование задачи
+	public String editTask(){ // так же возвращаем либо message or boolean
 		String msg;
 		try{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -408,13 +313,13 @@ public class JournalController extends Observable implements JournalableControll
 			notifyObservers("Описание:  ");
 			String editDescription = reader.readLine();  
 
-//			Calendar editDate = task.getDate(); // получаем дату
-			Calendar date = setupDate(fillDateField()); // устанавливаем дату
+			Calendar date = task.getDate(); // получаем дату
+			Calendar editDate = setupDate(fillDateField(),date); // устанавливаем дату
 //			(date != null && !date.isEmpty())?
 //					new GregorianCalendar(): // как работать с датой?!!
 //					null;  
 			
-			msg = ((journal.editTask(title, editTitle, editDescription, date))? 
+			msg = ((journal.editTask(title, editTitle, editDescription, editDate))? 
 					"Задача успешно отредактирована" : 
 					"Ошибка при редактировании задачи");
 			
@@ -425,31 +330,44 @@ public class JournalController extends Observable implements JournalableControll
 		return msg+"\n";
 	}
 
-	//Display()
-	private String showAll() {
+	@Override
+	public void showAll() {
 		// хом хз как тут менять весь смысл же в выводе
-		String msg = (journal.getTasks().isEmpty()) ? 
-				"Список задач пуст" : 
-					journal.getTasks().toString();
-		return	msg+"\n";
+//		String msg = (journal.getTasks().isEmpty()) ? 
+//				"Список задач пуст" : 
+//					journal.getTasks().toString();
+//		return	msg+"\n";
+
+		journal.showAll();
 	}
 
-	//Display()
-	private String clearAll() {
+	@Override // очистить журнал
+	public String clearAll() {
 		journal.clearTasks();
 		return "Список задач очищен\n";
 	}
 
-	// запись в файл
-	private String record() {
+	// присутствие в имени запрещенных символов
+	private boolean validateFileName(String name){
+		String ignoredSymbols = "\\/:*?\"<>|";
+		for(int i=0; i<name.length(); i++){
+			if (ignoredSymbols.contains(String.valueOf(name.charAt(i))))
+				return false; 
+		}
+		return true;
+	}
+	@Override// запись в файл
+	public String recordJournal() {
 		String message;
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 			notifyObservers("Введите имя файла, в который хотите сохранить текущий список задач: ");
 			String fileName = reader.readLine();
-			// запишется в любом случае, NPE не пройдет =) p.s. скорее всего)
-			journal.recordJournal(fileName);
-			message = "Запись прошла без ошибок";
+			// проверяем имя
+			if	(validateFileName(fileName))
+				message = (journal.recordJournal(fileName))? "Запись прошла без ошибок": "Не удалось записать";
+			else
+				message = "Имя файла содержит недопустимые символы (\\/:*?\"<>)";
 			
 		} catch (FileNotFoundException e) {
 			message = FILE_NOT_FOUND.toString();
@@ -463,15 +381,15 @@ public class JournalController extends Observable implements JournalableControll
 		return message+"\n";
 	}
 
-	//
-	private String read() {
+	@Override
+	public String readJournal() {
 		String message;
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 			notifyObservers("Введите имя файла, из которого хотите загрузить задачи: ");
 			String fileName = reader.readLine();
 			// вернуть список задач из указанного файла
-			journal.replaceTasks((List<? extends Task>) journal.readJournal(fileName).getTasks());// !
+			journal.replaceTasks((List<? extends Task>) journal.readJournal(fileName).getTasks());
 			message = "Чтение прошло без ошибок";
 			
 		} catch (FileNotFoundException e) {
@@ -486,7 +404,7 @@ public class JournalController extends Observable implements JournalableControll
 		return message+"\n";
 	}
 
-	//Display()
+	// вывод справки
 	private String help() {
 		StringBuilder sb = new StringBuilder();
 		try {
@@ -508,5 +426,6 @@ public class JournalController extends Observable implements JournalableControll
 		}
 		
 		return sb.toString()+"\n";
-	}	
+	}
+
 }

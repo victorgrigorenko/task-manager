@@ -32,27 +32,21 @@ public class MainTest{
 	
 	public static void main(String[] args) throws IOException{ // по идее нам это нужно самим обрабатывать		
 
-		// создаем модель
-		Journal model = new Journal();
+		Journal model = new Journal();	// создаем модель
 
-		// создаем и добаляем наблюдателя за моделью
-		JournalObserver journalObserver = new JournalObserver(model);
-		model.addObserver(journalObserver);
+		JournalController controller = JournalController.newInstance(model); // создаем контроллер
+		
+		JournalObserver journalObserver = new JournalObserver();	// создаем наблюдателя за моделью
 
+		// наблюдатели за сообщениями из контроллера
+		ControllerObserver controllerObserver = new ControllerObserver();	// создаем наблюдателя за контроллером
+		JournalMessageObserver msgObserver = new JournalMessageObserver();	// создаем наблюдателя за наблюдателем контроллера
 		
-		// создаем контроллер (модель яляется наблюдателем за контроллером)
-		JournalController controller = JournalController.newInstance(model);
+		model.addObserver(journalObserver); 		// добаляем наблюдателя за моделью
+		controller.addObserver(controllerObserver);	// добаляем наблюдателя за контроллером
+		controllerObserver.addObserver(msgObserver);// добаляем наблюдателя за наблюдателем контроллера
 		
-		// Создание и добавление наблюдателя сообщений из контроллера, через модель
-		// наблюдатель в модели, за сообщениями из контроллера
-		ControllerObserver controllerObserver = new ControllerObserver();
-		// наблюдатель во вью, за сообщениями из controllerObserver(в модели)
-		JournalMessageObserver msgObserver = new JournalMessageObserver();
-		
-		controllerObserver.addObserver(msgObserver);
-		controller.addObserver(controllerObserver);
-		
-		View view = new View(controller);//new Journal<>(new JournalObserver()));
+		View view = new View(controller);	// создаем представление
 		view.start();
         
 	}

@@ -11,11 +11,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "journalable")
 public interface Journalable<T extends Taskable> {
-	//List<Task> taskList;
 	
-	// будем создавать задачи, на все случаи жизни
-	T createTask();
-
 	T createTask(String title, String desc, Calendar date);
 
 	// добавление задач будет происходить в конец списка, поэтом индекс не нужен
@@ -33,8 +29,6 @@ public interface Journalable<T extends Taskable> {
 	// title - имя для поиска, edit - редактируемые поля задачи
 	boolean editTask(String title, String editTitle, String editDescription, Calendar editDate); // т.е. находим задачу по названию и редактируем ее поля
 
-	// возвращаем одну задачу
-	T getTask(int index);
 	// возвращаем список задач
 	List<? extends T> getTasks();
 	
@@ -58,5 +52,6 @@ public interface Journalable<T extends Taskable> {
 	// считать из xml файла с указанным именем
 	Journalable<?> readJournal(String fileName) throws JAXBException;
 	
-	
+	// Показать список задач
+	void showAll();
 }
