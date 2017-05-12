@@ -1,9 +1,8 @@
 package model;
 
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
@@ -12,7 +11,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "journalable")
 public interface Journalable<T extends Taskable> {
 	
-	T createTask(String title, String desc, Calendar date);
+	T createTask(String title, String desc, Date date);
 
 	// добавление задач будет происходить в конец списка, поэтом индекс не нужен
 	// добавить задачу
@@ -27,7 +26,7 @@ public interface Journalable<T extends Taskable> {
 	void replaceTasks(List<? extends T> list);
 	// попытка заменить replaseTask на более адекватную штуку
 	// title - имя для поиска, edit - редактируемые поля задачи
-	boolean editTask(String title, String editTitle, String editDescription, Calendar editDate); // т.е. находим задачу по названию и редактируем ее поля
+	boolean editTask(String title, String editTitle, String editDescription, Date editDate); // т.е. находим задачу по названию и редактируем ее поля
 
 	// возвращаем список задач
 	List<? extends T> getTasks();
@@ -41,17 +40,4 @@ public interface Journalable<T extends Taskable> {
 	// поиск задачи по имени
 	T searchTask(String title);
 	
-	// в идеале вынести в отдельный интерфейс, но начинаются проблемы
-	// запись в дефолтный xml
-	boolean recordJournal() throws JAXBException;
-	// запись в xml файл, с указанием имени
-	boolean recordJournal(String fileName) throws JAXBException;
-	
-	// считать из дефолтного xml файла
-	Journalable<?> readJournal() throws JAXBException;
-	// считать из xml файла с указанным именем
-	Journalable<?> readJournal(String fileName) throws JAXBException;
-	
-	// Показать список задач
-	void showAll();
 }

@@ -11,6 +11,24 @@ public enum Command {
 		this.command = command;
 	}
 	
+	public static Command valueParse(String arg){ // считываем строку и возвращаем соответствующую команду
+		Command cmd;
+		String tmp = "";
+		char[] chArr = arg.trim().toCharArray();
+		for(int i = 0; i<chArr.length; i++){
+			if (chArr[i] == ' ') chArr[i] = '_';
+			tmp += chArr[i];
+		}
+		tmp = tmp.toUpperCase();
+		try{
+			cmd = Command.valueOf(tmp);
+		}catch (IllegalArgumentException | NullPointerException e) {
+			cmd = Command.OTHER; 
+		}
+		return cmd;
+	}
+
+	
 	@Override
 	public String toString(){
 		return command;

@@ -1,12 +1,10 @@
 package controller;
 
-import java.lang.annotation.Inherited;
-import java.util.Calendar;
-import java.util.List;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 
-import model.Journal;
 import model.Taskable;
 
 public interface JournalableController<T extends Taskable> {
@@ -24,15 +22,18 @@ public interface JournalableController<T extends Taskable> {
 	String searchTask(); 
 	
 	// выводим список задач
-	void showAll();
+	String showAll();
 	
 	// очистить журнал
 	String clearAll();
 	
 	// сохранение
-	String recordJournal() throws JAXBException;
+	String recordJournal() 
+			throws JAXBException, IOException, FileNotFoundException;
 	
 	// чтение
-	String readJournal() throws JAXBException;	
-
+	String readJournal() 
+			throws JAXBException, IOException, FileNotFoundException;	
+	
+	void start(); // стартуем считывание команд пользователя
 }

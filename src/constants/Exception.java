@@ -5,7 +5,8 @@ public enum Exception { // Хранят сообщения по экспешне
 	IO("Ошибка ввода/вывода"), 
 	JAXB_READ("Ошибка чтения xml"), 
 	JAXB_RECORD("Ошибка записи xml"), 
-	ILLEGAL_ARGUMENT("Неверный аргумент");
+	ILLEGAL_ARGUMENT("Неверный аргумент"),
+	PARSE("Неверный формат даты/времени");
 	
 	private final String exception;
 	

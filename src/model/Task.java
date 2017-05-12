@@ -1,9 +1,7 @@
 package model;
 
-import java.beans.Transient;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Date;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -23,7 +21,7 @@ public class Task implements Taskable{
 	private String description;
 	
 	@XmlElement
-	private Calendar date;
+	private Date date;
 	
 	private SimpleDateFormat formatDate = new SimpleDateFormat("d MMMM YYYYг, в hh:mm");
 
@@ -34,28 +32,28 @@ public class Task implements Taskable{
 	public Task(){
 		title = "No Name";
 		description = "...";
-		date = new GregorianCalendar(); // устанавливаем текущую дату/время
+		date = new Date(); // устанавливаем текущую дату/время
 	}
 	
 	public Task(String title){
 		setTitle(title);
 		description = "...";
-		date = new GregorianCalendar();
+		date = new Date();
 	}
 
 	public Task(String title, String desc){
 		setTitle(title);
 		setDescription(desc);
-		date = new GregorianCalendar();
+		date = new Date();
 	}
 
-	public Task(String title, Calendar date){
+	public Task(String title, Date date){
 		setTitle(title);
 		description = "...";
 		setDate(date); 
 	}
 
-	public Task(String title, String desc, Calendar date){
+	public Task(String title, String desc, Date date){
 		setTitle(title);
 		setDescription(desc);
 		setDate(date);
@@ -67,7 +65,7 @@ public class Task implements Taskable{
 	}
 
 	@Override
-	public Taskable createTask(String title, String desc, Calendar date) {
+	public Taskable createTask(String title, String desc, Date date) {
 		return new Task(title,desc,date);
 	}
 
@@ -92,12 +90,12 @@ public class Task implements Taskable{
 	}
 
 	@Override
-	public Calendar getDate() {
+	public Date getDate() {
 		return date;
 	}
 
 	@Override
-	public void setDate(Calendar date) { 
+	public void setDate(Date date) { 
 		this.date = date;
 		
 	}
