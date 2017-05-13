@@ -12,7 +12,6 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "task")
 public class Task implements Taskable{
-//	private int id; // id соответствует значению в списке
 
 	@XmlElement
 	private String title;
@@ -23,16 +22,12 @@ public class Task implements Taskable{
 	@XmlElement
 	private Date date;
 	
-	private SimpleDateFormat formatDate = new SimpleDateFormat("d MMMM YYYYг, в hh:mm");
-
-	
-	// еще одно поле контакты..
-	
+	private SimpleDateFormat formatDate = new SimpleDateFormat("d MMMM YYYYг, в HH:mm");
 
 	public Task(){
 		title = "No Name";
 		description = "...";
-		date = new Date(); // устанавливаем текущую дату/время
+		date = new Date(); 
 	}
 	
 	public Task(String title){
@@ -96,19 +91,16 @@ public class Task implements Taskable{
 
 	@Override
 	public void setDate(Date date) { 
-		this.date = date;
-		
+		this.date = date;		
 	}
 	
 	@Override
 	public String toString(){
-
 		return title;
 	}
 
 	@Override
 	public String show(){
-		
 		return "название: " + this.getTitle()
 		+"\nописание: "+ this.getDecsription()
 		+"\nдата: "+ formatDate.format(getDate().getTime());

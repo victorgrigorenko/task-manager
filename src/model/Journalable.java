@@ -7,37 +7,29 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 
+import observer.*;
+
 @XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "journalable")
-public interface Journalable<T extends Taskable> {
+public interface Journalable<T extends Taskable> extends Observable, Observer{
 	
 	T createTask(String title, String desc, Date date);
 
-	// добавление задач будет происходить в конец списка, поэтом индекс не нужен
-	// добавить задачу
 	boolean addTask(T task); 
-	// добавить список задач
+
 	void addTasks(List<? extends T> list);
-//	void addTasks(Collection<? extends T> list); 
 
-	// поиск задачи с указанным именем и ее замена на указанную в аргументе
 	boolean replaceTask(String title, T task);
-	// замена всего списка задач
-	void replaceTasks(List<? extends T> list);
-	// попытка заменить replaseTask на более адекватную штуку
-	// title - имя для поиска, edit - редактируемые поля задачи
-	boolean editTask(String title, String editTitle, String editDescription, Date editDate); // т.е. находим задачу по названию и редактируем ее поля
 
-	// возвращаем список задач
+	void replaceTasks(List<? extends T> list);
+
+	boolean editTask(String title, String editTitle, String editDescription, Date editDate); 
+
 	List<? extends T> getTasks();
 	
-	// удаление по имени
-	boolean deleteTask(String title); // может и не удалить задачу, если не найдет
+	boolean deleteTask(String title); 
 	
-	// удалить все задачи
-	void clearTasks(); // просто все почистит, влюбом случае
+	void clearTasks(); 
 	
-	// поиск задачи по имени
 	T searchTask(String title);
-	
 }

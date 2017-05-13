@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -15,25 +13,23 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import observer.*;
+import static constants.Constants.*;
 
-//возможно стоило использовать PROPERTY, и объявить геттер/сеттер пары для корректной
+
 @XmlRootElement
-@XmlAccessorType(XmlAccessType.NONE) // записи чтения  
+@XmlAccessorType(XmlAccessType.NONE)  
 @XmlType(name = "journalOfTask")
-public class Journal extends Observable implements Journalable<Task>, Observer{
+public class Journal implements Journalable<Task>{
 
-	
-	// ставим required, теперь если не найдет List в xml, то будет ругаться
-	@XmlElement(required = true, name = "task")//, type =Task.class) //ОК, JAXB хочет класс, поэтому пока оставим так, но ЭТО НЕ КРУТО! 
-	@XmlElementWrapper(name = "tasks") // для группировки коллекции в подтег
+	@XmlElement(required = true, name = "task") 
+	@XmlElementWrapper(name = "tasks")
 	private List<Task> taskList = new ArrayList<>();
 
-	// Список наблюдателей(подписчиков)
 	private List<Observer> observers;
 
-	public Journal(){//Observer o){
+	public Journal(){
 		observers = new ArrayList<>();
-		//this.addObserver(o);
 	}
 
 	@Override
@@ -51,7 +47,7 @@ public class Journal extends Observable implements Journalable<Task>, Observer{
 	@Override
 	public void notifyObservers(Object arg) {
 		for (Observer observer : observers) 
-			observer.update(this,arg); // второй аргумент в true, только если хотим вывести список задач 
+			observer.update(this,arg);  
 	}
 	
 
@@ -61,25 +57,24 @@ public class Journal extends Observable implements Journalable<Task>, Observer{
 			return new Task(title, desc, date);
 		}
 		
-		return null;//new Task(); // быстрое добавление задачи, если поля пустые
+		return null;
 	}
-
 	
 	@Override
 	public boolean addTask(Task task){
 		boolean result;
 		Task t = returnReferenceOnTask(task.getTitle());
-		if (t != null) taskList.remove(t); // на случай если нашли задачу с таким же именем, удаляем старую..
+		if (t != null) taskList.remove(t); 
 		result = (taskList.add(task))? true: false;
-//		notifyObservers(false);
+		notifyObservers(NONE);
 		return result;
 	}
 
 	@Override
 	public void addTasks(List<? extends Task> list) {
-		if (list !=null && !list.isEmpty()){ // нужна ли здесь проверка, ведь в контроллер не выносим данный метод
+		if (list !=null && !list.isEmpty()){ 
 			taskList.addAll(list);
-//			notifyObservers(false);
+			notifyObservers(NONE);
 		}
 	}
 
@@ -88,8 +83,8 @@ public class Journal extends Observable implements Journalable<Task>, Observer{
 	public boolean deleteTask(String title){
 		Task task = (title != null && !title.isEmpty())? returnReferenceOnTask(title): null;
 		if (task != null){
-			taskList.remove(task); // удаляем найденную задачу
-//			notifyObservers(false);
+			taskList.remove(task);
+			notifyObservers(NONE);
 			return true; 
 		}
 
@@ -101,22 +96,21 @@ public class Journal extends Observable implements Journalable<Task>, Observer{
 		if (taskList != null && !taskList.isEmpty())
 			taskList.clear();
 		
-//		notifyObservers(false);
+		notifyObservers(NONE);
 	}
 	
-	@Override // безопасный поиск, вернет копию задачи с указанным именем
+	@Override 
 	public Task searchTask(String title){
 		if (title == null || title.isEmpty()) 
-			return null; // если входные данные не верны вернем null
+			return null; 
 
 		for (Task task : taskList) { 
 			if (task.getTitle().equals(title))
 				return task;
 		}
-		return null; // если ничего не нашли вернем null и как то обрабатывать, а то NPE
+		return null; 
 	}
 	
-	// вернуть ссылку, на задачу с указанным именем
 	private Task returnReferenceOnTask(String title){ 
 		if (title == null || title.isEmpty()) 
 			return null; 
@@ -131,30 +125,30 @@ public class Journal extends Observable implements Journalable<Task>, Observer{
 		return null;			
 	}
 
-	@Override // замена текущей, на указанную
+	@Override 
 	public boolean replaceTask(String title, Task task) {
 		if(title != null && !title.isEmpty() && task != null){
 			int index = taskList.indexOf(returnReferenceOnTask(title));
 			if (index != -1){
 				taskList.set(index, task);
-//				notifyObservers(false);
+				notifyObservers(NONE);
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	@Override // 
+	@Override  
 	public void replaceTasks(List<? extends Task> list) {
 		taskList.clear();
 		taskList.addAll(list);
-//		notifyObservers(false);
+		notifyObservers(NONE);
 	}
 
-	@Override // редактирование полей найденной задачи, можно еще добавить проверку на equals, но не уверен что стоит
+	@Override
 	public boolean editTask(String title, String editTitle, String editDescription, Date editDate) {
-		Boolean edited = false; // редактировали задачу или нет
-		Task task = returnReferenceOnTask(title); // получили ссыль на нужную таску
+		Boolean edited = false; 
+		Task task = returnReferenceOnTask(title); 
 		if (task==null)
 			return false;
 		
@@ -173,20 +167,17 @@ public class Journal extends Observable implements Journalable<Task>, Observer{
 			edited = true;
 		}
 		
-//		notifyObservers(false);
+		notifyObservers(NONE);
 		return edited;
 	}
-
 	
 	@Override
 	public List<? extends Task> getTasks() {
 		return taskList;
-	}
-	
+	}	
 	
 	@Override
 	public void update(Observable o, Object arg) {
 		notifyObservers(arg);
-		
 	}
 }

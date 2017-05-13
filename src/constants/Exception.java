@@ -1,11 +1,12 @@
 package constants;
 
-public enum Exception { // Хранят сообщения по экспешнеам
+public enum Exception { 
 	FILE_NOT_FOUND("Файл не найден"), 
 	IO("Ошибка ввода/вывода"), 
 	JAXB_READ("Ошибка чтения xml"), 
 	JAXB_RECORD("Ошибка записи xml"), 
 	ILLEGAL_ARGUMENT("Неверный аргумент"),
+	
 	PARSE("Неверный формат даты/времени");
 	
 	private final String exception;

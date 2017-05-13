@@ -11,7 +11,7 @@ public enum Command {
 		this.command = command;
 	}
 	
-	public static Command valueParse(String arg){ // считываем строку и возвращаем соответствующую команду
+	public static Command valueParse(String arg){ 
 		Command cmd;
 		String tmp = "";
 		char[] chArr = arg.trim().toCharArray();
@@ -27,7 +27,6 @@ public enum Command {
 		}
 		return cmd;
 	}
-
 	
 	@Override
 	public String toString(){
@@ -35,22 +34,3 @@ public enum Command {
 	}
 
 }
-//break;
-//case "del": del(); // удаление задачи commandShowTasks
-//break;
-//case "search": search(); // поиск задачи
-//break;
-//case "edit": edit(); // редактирование задачи
-////System.out.println("Функция редактирования задачи пока отсутствует");
-//break;
-//case "show all": showAll(); // вывод всех задач
-//break;
-//case "clear all": clearAll(); // удалить все задачи
-//break;
-//case "record": record(); // запись журнала задач в файл
-//break;
-//case "read": read(); // чтение журнала задач из файла
-//break;
-//case "help": help(); // справка
-//break;
-//case "stop": run = false;

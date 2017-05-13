@@ -2,6 +2,9 @@ package controller;
 
 import static constants.Exception.*;
 import static constants.Command.*;
+import static constants.Patterns.*;
+import static constants.Constants.*;
+import static constants.ConstantMessage.*;
 import constants.Command;
 
 import java.io.BufferedReader;
@@ -14,8 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,25 +27,20 @@ import model.Journalable;
 import model.Task;
 import model.XMLJournal;
 import model.XMLJournalible;
+import observer.*;
 
 
-
-public class JournalController extends Observable implements JournalableController<Task> {
+public class JournalController implements JournalableController<Task> {
 	private Journalable<Task> journal;
 	private XMLJournalible<Task> xml = new XMLJournal();
-	private String fileRg, dateRg, titleRg;
 	
 	BufferedReader reader;
 
-	// Список наблюдателей(подписчиков)
 	private List<Observer> observers;
 
 	private JournalController(Journalable<Task> journal) {
 		observers = new ArrayList<>();
 		reader = new BufferedReader(new InputStreamReader(System.in));
-		fileRg	= "[^\\/:*?\"<|>]+"; // шаблон для именования файла
-		dateRg 	= "[\\d\\s\\.:]+"; // шаблон даты
-		titleRg	= "(([\\w\\s\\а-яА-Я?!:;,.'\"&@№$%()_-]+))"; // шаблон для названия таски 
 
 		this.journal = journal;
 	}
@@ -53,7 +50,6 @@ public class JournalController extends Observable implements JournalableControll
 		return new JournalController(journal);
 	}
 
-	//**** методы для работы с Observers
 	@Override
 	public void addObserver(Observer o) {
 		if(o != null)
@@ -68,17 +64,16 @@ public class JournalController extends Observable implements JournalableControll
 	
 	@Override
 	public void notifyObservers(Object arg) {
-		for (Observer observer : observers){ // тут ловим NPE
-			observer.update(this,arg); // здесь просто будем передавать сообщение
+		for (Observer observer : observers){ 
+			observer.update(this,arg); 
 		}
 	}
-
 	
-	/// Весь код, что ниже забран из вьюхи,
+
 	public void commandRead() throws IOException {
 		String command;
 		Command commanOfEnum;
-		do { // передаем разные функции
+		do { 
 			command = reader.readLine();
 			commanOfEnum = Command.valueParse(command);
 			commandParse(commanOfEnum);
@@ -86,44 +81,44 @@ public class JournalController extends Observable implements JournalableControll
 		reader.close();
 	}
 
-	// подумать, возможно оставить возвращение сообщения только в конкретных методах
 	public String commandParse(Command command) throws IOException {
-		String message = ""; 
+		String message = NONE; 
 
 		switch (command) {
-			case ADD: message = addTask(); // добавление задачи
+			case ADD: message = addTask(); 
 				break;
-			case DEL: message = deleteTask(); // удаление задачи commandShowTasks
+			case DEL: message = deleteTask();
 				break;
-			case SEARCH: message = searchTask(); // поиск задачи
+			case SEARCH: message = searchTask();
 				break;
-			case EDIT: message = editTask(); // редактирование задачи
+			case EDIT: message = editTask(); 
 				break;
-			case SHOW_ALL: message = showAll(); // вывод всех задач
+			case SHOW_ALL: message = showAll(); 
 				break;
-			case CLEAR_ALL: message = clearAll(); // удалить все задачи
+			case CLEAR_ALL: message = clearAll();
 				break;
-			case RECORD: message = recordJournal(); // запись журнала задач в файл
+			case RECORD: message = recordJournal();
 				break;
-			case READ: message = readJournal(); // чтение журнала задач из файла
+			case READ: message = readJournal();
 				break;
-			case HELP: message = help(); // справка
+			case HELP: message = help(); 
 				break;
-			case STOP: message = "Работа планировщика остановлена"; // "stop"
+			case STOP: message = STOPPED; 
 				break;
 			case OTHER:
 			default:
-				message = "Вы ввели неверную команду. Попробуйте заново или воспользуйтесь справкой 'help'\n";
+				message = INFORM_MSG+NEW_LINE;
 		}
-		notifyObservers(message); // здесь сообщения для отдельного обсервера(не  журнале)
+		notifyObservers(message); 
 		return message;
 	}
 	
-	private Date setupDate() throws IOException, ParseException{ // метод для заполнения даты
-		SimpleDateFormat format = new SimpleDateFormat("d.MM.yyyy hh:mm");
-		notifyObservers("Введите дату и время (D.MM.YYYY hh:mm): ");
+	
+	private Date setupDate() throws IOException, ParseException{ 
+		SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT);
+		notifyObservers(DATE);
 		String dateString = reader.readLine();
-		if (!validateField(dateString,dateRg)) notifyObservers("Невалидная дата\n");
+		if (!validateField(dateString,DATE_RG)) notifyObservers(NOT_VERIFY_DATE_MSG+NEW_LINE);
 
 		return format.parse(dateString);
 	}
@@ -131,168 +126,161 @@ public class JournalController extends Observable implements JournalableControll
 
 	@Override
 	public String addTask() {
-		String msg = "";
+		String msg = NONE;
 		try {
-			notifyObservers("Для добавления задачи построчно вводите поля (название/описание/дата)\n");
+			notifyObservers(ADD_MSG+NEW_LINE);
 			
-			notifyObservers("Название: ");
+			notifyObservers(TITLE);
 			String title = reader.readLine();
-			if (!validateField(title,titleRg)) return "Невалидное имя задачи при добавлении\n";
+			if (!validateField(title,TITLE_RG)) return NOT_VERIFY_TITLE_MSG+NEW_LINE;
 
 			if(journal.searchTask(title) != null){
-				notifyObservers("Задача с указанным именем существует, хотите ее перетереть текущей ('y'/'n')? ");
+				notifyObservers(DUPLICATE_TASK_MSG);
 				char ch = (char)reader.read();
-				if(ch == 'n' || ch == 'N'){
+				if(ch == 'n' || ch == 'N'){ 
 					return null;
 				}
 				reader.readLine();
 			}				
-			notifyObservers("Описание: ");
+			notifyObservers(DESCRIPTION);
 			String description = reader.readLine();
 
 			Task task = journal.createTask(title, description, setupDate());
 			if (task != null){
 				journal.addTask(task);
-				msg = "Задача успешно добалена \n";
+				msg = SUCCESS_ADD_TASK_MSG+NEW_LINE;
 			}
 			else
-				msg = "Задача не была добавлена\n";
+				msg = NOT_SUCCESS_ADD_TASK_MSG+NEW_LINE;
 			return msg;
 
 		} catch (ParseException e) {
-			return PARSE.toString()+"\n"; 
+			return PARSE.toString()+NEW_LINE; 
 
 		} catch (IllegalArgumentException e) {
-			return ILLEGAL_ARGUMENT.toString()+"\n";
+			return ILLEGAL_ARGUMENT.toString()+NEW_LINE;
 
 		} catch (IOException e) {
-			return IO.toString()+"\n";
+			return IO.toString()+NEW_LINE;
 		}
 	}
 	
 	
 	@Override
-	public String deleteTask() { // так же возвращаем успех или нет, если не нашли нужную задачу
+	public String deleteTask() { 
 		String msg;
 		try {
 			String title;
 
-			// выводить на дисплей в контроллере нельзя!!!!!
-			notifyObservers("Для удаления задачи введите имя: ");
+			notifyObservers(DEL_MSG);
 			title = reader.readLine();
 
 			msg = (journal.deleteTask(title))? 
-					"Задача успешно удалена\n": 
-					"Задачи с таким названием не существует\n";
+					SUCCESS_DEL_TASK_MSG+NEW_LINE: 
+					NOT_SUCCESS_SEARCH_TASK_MSG+NEW_LINE;
 
 		} catch (IOException e) {
-			msg = IO.toString()+"\n";
+			msg = IO.toString()+NEW_LINE;
 		}
 
 		return msg;
 	}
 
 	@Override
-	public String searchTask() { // здесь выводим текстовое предсавление задачи
+	public String searchTask() { 
 		String msg;
 		try {
 			String title;
 
-			notifyObservers("Для поиска задачи введите имя: ");
+			notifyObservers(SEARCH_MSG);
 			title = reader.readLine();
 
 			Task task = journal.searchTask(title);
 
-			msg = (task != null)? "\n"+task.show() + "\n" : "Задачи с таким названием не существут\n";
+			msg = (task != null)? NEW_LINE+task.show() + NEW_LINE : NOT_SUCCESS_SEARCH_TASK_MSG+NEW_LINE;
 
 		} catch (IOException e) {
-			msg = IO.toString()+"\n";
+			msg = IO.toString()+NEW_LINE;
 		}
 
 		return msg;
 	}
 	
 	
-	@Override // Редактирование задачи
-	public String editTask(){ // так же возвращаем либо message or boolean
+	@Override 
+	public String editTask(){ 
 		String msg, title, editTitle, editDescription;
-		title = editTitle = editDescription = "";
+		title = editTitle = editDescription = NONE;
 		Task task = null;
 		try{
 
-			notifyObservers("Введите название задачи, которую хотите отредактировать: ");
+			notifyObservers(EDIT_MSG);
 			title = reader.readLine();
 			task = journal.searchTask(title);
 			if(task == null){
-				return "Такой задачи не существует\n";
+				return NOT_SUCCESS_SEARCH_TASK_MSG+NEW_LINE;
 			} 
 			notifyObservers("Задача '"+task.getTitle()+"' найдена, отредактируем ее\n");
 
-			notifyObservers("Название:  ");
+			notifyObservers(TITLE);
 			editTitle = reader.readLine();  
-			if (!validateField(editTitle,titleRg)) notifyObservers("Невалидное название задачи при редактировании\n");
+			if (!validateField(editTitle,TITLE_RG)) notifyObservers(NOT_VERIFY_TITLE_MSG+NEW_LINE);
 
-
-			notifyObservers("Описание:  ");
+			notifyObservers(DESCRIPTION);
 			editDescription = reader.readLine();  
 
 			msg = ((journal.editTask(title, editTitle, editDescription, setupDate()))? 
-					"Задача успешно отредактирована" : 
-					"Ошибка при редактировании задачи");
+					SUCCESS_EDIT_TASK_MSG : 
+					NOT_SUCCESS_EDIT_TASK_MSG);
 			
 		} catch (ParseException e) {
-			Date oldDate = task.getDate(); // получаем старую дату
+			Date oldDate = task.getDate();
 			msg = ((journal.editTask(title, editTitle, editDescription, oldDate))? 
-					"Задача успешно отредактирована" : 
-					"Ошибка при редактировании задачи");
-			msg += "\n"+PARSE.toString();
+					SUCCESS_EDIT_TASK_MSG : 
+					NOT_SUCCESS_EDIT_TASK_MSG);
+			msg += NEW_LINE + PARSE.toString();
 
 		} catch(IOException e){
 			msg = IO.toString();
 		}
 		
-		return msg+"\n";
+		return msg + NEW_LINE;
 	}
 
 	@Override
 	public String showAll() {
-		// хом хз как тут менять весь смысл же в выводе
 		String msg = (journal.getTasks().isEmpty()) ? 
-				"Список задач пуст" : 
-					journal.getTasks().toString();
-		return	msg+"\n";
-
-		//journal.showAll();
+				TASK_LIST_IS_EMPTY_MSG : 
+				journal.getTasks().toString();
+		return	msg+NEW_LINE;
 	}
 
-	@Override // очистить журнал
+	@Override 
 	public String clearAll() {
 		journal.clearTasks();
-		return "Список задач очищен\n";
+		return TASK_LIST_CLEARED_MSG+NEW_LINE;
 	}
 
 	
-	// валидация поля
 	private boolean validateField(String field, String pattern){
 		Pattern dataRg 	= Pattern.compile(pattern); 
 		Matcher matcher	= dataRg.matcher(field);
 		return (matcher.matches());
 	}
 
-	@Override// запись в файл
+	@Override
 	public String recordJournal() {
 		String message;
 		try {
-			notifyObservers("Введите имя файла, в который хотите сохранить журнал: ");
+			notifyObservers(RECORD_MSG);
 			String fileName = reader.readLine();
 
-			// проверяем имя
-			if	(validateField(fileName,fileRg)){
+			if	(validateField(fileName,FILE_RG)){
 				 xml.recordJournal(journal, fileName);
-				message = "Валидация пройдена, запись прошла без ошибок";
+				message = SUCCESS_RECORD_TASK_MSG;
 			}
 			else
-				message = "Имя файла содержит недопустимые символы (\\/:*?\"<>)";
+				message = NOT_SUCCESS_RECORD_TASK_MSG;
 			
 		} catch (FileNotFoundException e) {
 			message = FILE_NOT_FOUND.toString();
@@ -303,18 +291,17 @@ public class JournalController extends Observable implements JournalableControll
 		} catch (JAXBException e) {
 			message = JAXB_RECORD.toString();
 		}
-		return message+"\n";
+		return message+NEW_LINE;
 	}
 	
 	@Override
 	public String readJournal() {
 		String message;
 		try {
-			notifyObservers("Введите имя файла, из которого хотите загрузить задачи: ");
+			notifyObservers(READ_MSG);
 			String fileName = reader.readLine();
-			// вернуть список задач из указанного файла
 			journal.replaceTasks(xml.readJournal(journal,fileName).getTasks());
-			message = "Чтение прошло без ошибок";
+			message = SUCCESS_READ_TASK_MSG;
 			
 		} catch (FileNotFoundException e) {
 			message = FILE_NOT_FOUND.toString();	
@@ -325,21 +312,21 @@ public class JournalController extends Observable implements JournalableControll
 		} catch (JAXBException e) {
 			message = JAXB_READ.toString();
 		}
-		return message+"\n";
+		return message+NEW_LINE;
 	}
 
-	// вывод справки
+
 	private String help() {
 		StringBuilder sb = new StringBuilder();
 		try (
-				BufferedReader reader = new BufferedReader(new FileReader("storage/help.txt"));
+				BufferedReader reader = new BufferedReader(new FileReader(HELP_FILE))
 			){
 				String s;
 			do {
 				s = reader.readLine();
 				if (s == null)
 					break;
-				sb.append(s+"\n");
+				sb.append(s+NEW_LINE);
 
 			} while (true);
 
@@ -350,21 +337,16 @@ public class JournalController extends Observable implements JournalableControll
 			sb = new StringBuilder(IO.toString());
 		}
 		
-		return sb.toString()+"\n";
+		return sb.toString()+NEW_LINE;
 	}
 
 	@Override
 	public void start() {
 		try {
-			System.out.println("Cтарт: ");
+			notifyObservers(START+NEW_LINE);
 			this.commandRead();
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
-			System.out.println(IO.toString());
+			notifyObservers(IO.toString()+NEW_LINE);
 		}
-
 	}
-	
-	
-
 }

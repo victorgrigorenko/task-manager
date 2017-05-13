@@ -1,18 +1,18 @@
 package view;
 
-import java.util.Observable;
-import java.util.Observer;
+import observer.Observable;
 
-public class View  implements Observer{
+public class View  implements Viewable{
 
-	public View(){
-	}
-
-	@Override 
-	public void update(Observable controllerObserver, Object arg) {
+	@Override
+	public void display(Object arg) {
 		if (arg != null && !arg.toString().isEmpty()){
 			System.out.print("view: "+arg);
 		}		
 	}
 
+	@Override 
+	public void update(Observable controllerObserver, Object arg) {
+		display(arg);		
+	}
 }
